@@ -1,3 +1,4 @@
+import { memory } from "roark"; // Assumes your Rork agent is installed
 import { IEPSummary } from '@/types';
 
 type CoreMessage = {
@@ -370,5 +371,42 @@ TRANSITION SERVICES:
 This IEP is effective from September 1, 2024 to August 31, 2025.
 Next annual review scheduled for August 2025.
 Next evaluation due: August 2027.`;
+  }
+static async embedIEPToMemory(userId: string, iepText: string) {
+  try {
+    await memory.embed({
+      namespace: `parent-${userId}`,
+      content: iepText,
+      metadata: {
+        type: "IEP",
+        year: 2025,
+        uploaded_by: "parent"
+      }
+    });
+    console.log("✅ IEP embedded to memory");
+  } catch (error) {
+    console.error("❌ Failed to embed IEP to memory:", error);
+  }
+}}
+static async queryIEPMemory(userId: string, prompt: string): Promise<string> {
+  try {
+    const messages = [
+      {
+        role: "user",
+        content: prompt
+      }
+    ];
+
+    const result = await memory.query({
+      namespace: `parent-${userId}`,
+      messages,
+      topK: 5 // how many memory chunks to search
+    });
+
+    console.log("🧠 Memory query result:", result.completion);
+    return result.completion;
+  } catch (error) {
+    console.error("❌ Memory query failed:", error);
+    throw new Error("Unable to query memory.");
   }
 }
